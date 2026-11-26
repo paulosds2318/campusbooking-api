@@ -1,0 +1,427 @@
+
+@baseUrl = http://localhost:3002
+@date = 2026-11-27
+@bookingId = 1
+
+# Execute individualmente.
+# PATCH e DELETE alteram o registro #1.
+# Para recuperar as fixtures: npm run db:seed
+
+
+
+# Registro da minha rodada de testes e respectivos responses.
+# As requisições foram executadas individualmente e os retornos foram conferidos.
+
+### 1. Health
+GET {{baseUrl}}/health
+
+### Listar todas as salas
+GET http://localhost:3002/api/rooms
+
+### 2. Listar salas
+GET {{baseUrl}}/api/rooms
+
+### 3. Listar salas com filtros
+GET {{baseUrl}}/api/rooms?buildingId=1&type=LAB&minCapacity=20&active=true&name=Laboratório
+
+### 4. Consultar utilização do prédio
+GET {{baseUrl}}/api/buildings/1/usage?date={{date}}
+
+### 5. Consultar utilização de prédio sem salas ativas
+GET {{baseUrl}}/api/buildings/3/usage?date={{date}}
+
+### 6. Criar reserva
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "roomId": 3,
+  "userId": 15,
+  "startAt": "{{date}}T13:00:00-03:00",
+  "endAt": "{{date}}T14:00:00-03:00",
+  "purpose": "Projeto integrador"
+}
+
+### 7. Atualizar reserva
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}
+Content-Type: application/json
+
+{
+  "purpose": "Reunião revisada"
+}
+
+### 8. Erro de validação: PATCH vazio
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}
+Content-Type: application/json
+
+{}
+
+### 9. Erro de validação: userId não permitido no PATCH
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}
+Content-Type: application/json
+
+{
+  "userId": 2
+}
+
+### 10. Erro de validação: purpose vazio
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}
+Content-Type: application/json
+
+{
+  "purpose": "   "
+}
+
+### 11. Erro de validação: purpose acima de 200 caracteres
+PATCH {{baseUrl}}/api/bookings/{{bookingId}}
+Content-Type: application/json
+
+{
+  "purpose": "baninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninhabaninha"
+}
+
+### 12. Excluir reserva
+DELETE {{baseUrl}}/api/bookings/{{bookingId}}
+
+
+
+### POST - Impedir reservas com horários sobrepostos na mesma sala
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 1,
+  "startAt": "2026-11-27T09:00:00-03:00",
+  "endAt": "2026-11-27T10:00:00-03:00",
+  "purpose": "Teste de conflito"
+}
+
+
+### POST - Impedir reservas sobrepostas do mesmo usuário em salas diferentes
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "roomId": 3,
+  "startAt": "2026-11-27T09:00:00-03:00",
+  "endAt": "2026-11-27T10:00:00-03:00",
+  "purpose": "Teste de conflito do usuário"
+}
+
+
+### POST - Impedir reserva em sala inativa
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 10,
+  "startAt": "2026-11-27T13:00:00-03:00",
+  "endAt": "2026-11-27T14:00:00-03:00",
+  "purpose": "Teste de sala inativa"
+}
+
+
+### POST - Impedir reserva com usuário inexistente
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 9999,
+  "roomId": 3,
+  "startAt": "2026-11-27T13:00:00-03:00",
+  "endAt": "2026-11-27T14:00:00-03:00",
+  "purpose": "Teste de usuário inexistente"
+}
+
+
+### POST - Impedir reserva com sala inexistente
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 9999,
+  "startAt": "2026-11-27T13:00:00-03:00",
+  "endAt": "2026-11-27T14:00:00-03:00",
+  "purpose": "Teste de sala inexistente"
+}
+
+
+### POST - Impedir reserva fora do horário de funcionamento
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T07:00:00-03:00",
+  "endAt": "2026-11-27T08:00:00-03:00",
+  "purpose": "Teste de horário inválido"
+}
+
+### POST - Impedir reserva com duração superior a 2 horas
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T16:30:00-03:00",
+  "purpose": "Teste de duração máxima"
+}
+
+
+### POST - Impedir reserva atravessando dois dias
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T23:00:00-03:00",
+  "endAt": "2026-11-28T00:00:00-03:00",
+  "purpose": "Teste de reserva entre dias"
+}
+
+
+### POST - Impedir reserva com horário final anterior ao inicial
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T13:00:00-03:00",
+  "purpose": "Teste de intervalo inválido"
+}
+
+### POST - Impedir reserva com data no passado
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-25T13:00:00-03:00",
+  "endAt": "2026-11-25T14:00:00-03:00",
+  "purpose": "Teste de reserva no passado"
+}
+
+
+### POST - Impedir reserva com finalidade vazia
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T15:00:00-03:00",
+  "purpose": "   "
+}
+
+
+### POST - Impedir finalidade com mais de 200 caracteres
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T15:00:00-03:00",
+  "purpose": "Esta finalidade possui mais de duzentos caracteres para testar a validação do sistema. Esta finalidade possui mais de duzentos caracteres para testar a validação do sistema. Esta finalidade possui mais de duzentos caracteres."
+}
+
+### POST - Impedir campos adicionais não permitidos
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 15,
+  "roomId": 3,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T15:00:00-03:00",
+  "purpose": "Teste de campo adicional",
+  "buildingId": 1
+}
+
+### PATCH - Impedir atualização sem campos
+PATCH {{baseUrl}}/api/bookings/32
+Content-Type: application/json
+
+{}
+
+### PATCH - Impedir alteração do usuário da reserva
+PATCH {{baseUrl}}/api/bookings/32
+Content-Type: application/json
+
+{
+  "userId": 2
+}
+
+### PATCH - Impedir atualização de reserva inexistente
+PATCH {{baseUrl}}/api/bookings/9999
+Content-Type: application/json
+
+{
+  "purpose": "Teste de reserva inexistente"
+}
+
+### GET - Consultar reservas do prédio para identificar IDs existentes
+GET {{baseUrl}}/api/buildings/1/usage?date={{date}}
+
+
+### PATCH - Tentar atualizar reserva já iniciada
+PATCH {{baseUrl}}/api/bookings/6
+Content-Type: application/json
+
+{
+  "purpose": "Tentativa de alteração"
+}
+
+
+### PATCH - Atualizar para sala inexistente
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "roomId": 9999
+}
+
+
+### PATCH - Atualizar para sala inativa
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "roomId": 10
+}
+
+### PATCH - Atualizar para horário fora do funcionamento
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "startAt": "2026-11-27T07:00:00-03:00",
+  "endAt": "2026-11-27T08:00:00-03:00"
+}
+
+### PATCH - Duração superior a 2 horas
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T16:30:00-03:00"
+}
+
+
+
+### PATCH - Conflito de horário na mesma sala
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "roomId": 1,
+  "startAt": "2026-11-27T14:00:00-03:00",
+  "endAt": "2026-11-27T15:00:00-03:00"
+}
+
+
+### PATCH - Conflito de usuário em outra sala
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "roomId": 3,
+  "startAt": "2026-11-27T17:00:00-03:00",
+  "endAt": "2026-11-27T18:00:00-03:00"
+}
+
+
+### POST - Criar reserva temporária para teste
+POST {{baseUrl}}/api/bookings
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "roomId": 2,
+  "startAt": "2026-11-27T17:00:00-03:00",
+  "endAt": "2026-11-27T18:00:00-03:00",
+  "purpose": "Teste temporário de conflito"
+}
+
+### DELETE - Excluir reserva temporária
+DELETE {{baseUrl}}/api/bookings/34
+
+
+### DELETE - Excluir reserva inexistente
+DELETE {{baseUrl}}/api/bookings/9999
+
+
+### DELETE - ID inválido
+DELETE {{baseUrl}}/api/bookings/abc
+
+### DELETE - Excluir reserva já iniciada
+DELETE {{baseUrl}}/api/bookings/6
+
+
+### PATCH - Atualização válida
+PATCH {{baseUrl}}/api/bookings/31
+Content-Type: application/json
+
+{
+  "purpose": "Projeto integrador atualizado"
+}
+
+
+### GET - Listar salas com filtros combinados
+GET {{baseUrl}}/api/rooms?buildingId=1&type=LAB&minCapacity=10&active=true
+
+### GET - Filtrar salas pelo nome
+GET {{baseUrl}}/api/rooms?name=Laboratório
+
+### GET - Filtro com capacidade inválida
+GET {{baseUrl}}/api/rooms?minCapacity=abc
+
+
+### GET - Parâmetro repetido
+GET {{baseUrl}}/api/rooms?buildingId=1&buildingId=2
+
+
+### GET - Data inválida no relatório de utilização
+GET {{baseUrl}}/api/buildings/1/usage?date=2026-02-30
+
+
+### GET - Sem informar a data
+GET {{baseUrl}}/api/buildings/1/usage
+
+
+### GET - Prédio inexistente
+GET {{baseUrl}}/api/buildings/9999/usage?date=2026-11-27
+
+
+### GET - Parâmetro date repetido
+GET {{baseUrl}}/api/buildings/1/usage?date=2026-11-27&date=2026-11-28
+
+
+### GET - Tipo de sala inválido
+GET {{baseUrl}}/api/rooms?type=INVALID
+
+
+### GET - Filtro active inválido
+GET {{baseUrl}}/api/rooms?active=abc
+
+
+### GET - buildingId inválido
+GET {{baseUrl}}/api/rooms?buildingId=abc
+
+
+### GET - Capacidade mínima negativa
+GET {{baseUrl}}/api/rooms?minCapacity=-5

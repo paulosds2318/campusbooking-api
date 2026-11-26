@@ -1,0 +1,124 @@
+{
+  "info": {
+    "name": "CampusBooking | Atividade prática",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Exemplos de requisições. Execute individualmente; operações de escrita alteram os dados. Use o dia principal informado pelo seed."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3002"
+    },
+    {
+      "key": "date",
+      "value": "2026-12-01"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/health"
+      },
+      "response": []
+    },
+    {
+      "name": "Listagem",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/rooms?buildingId=1&type=LAB&active=true"
+      },
+      "response": []
+    },
+    {
+      "name": "Utilização",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/buildings/1/usage?date={{date}}"
+      },
+      "response": []
+    },
+    {
+      "name": "Criar reserva",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": 1,\n  \"roomId\": 3,\n  \"startAt\": \"{{date}}T11:00:00-03:00\",\n  \"endAt\": \"{{date}}T12:00:00-03:00\",\n  \"purpose\": \"Projeto integrador\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Alterar reserva #1",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/bookings/1",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"purpose\": \"Reunião revisada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cancelar reserva #1",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/bookings/1"
+      },
+      "response": []
+    },
+    {
+      "name": "Erro: sala inativa",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/bookings",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": 15,\n  \"roomId\": 4,\n  \"startAt\": \"{{date}}T11:00:00-03:00\",\n  \"endAt\": \"{{date}}T12:00:00-03:00\",\n  \"purpose\": \"Estudo\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "response": []
+    }
+  ]
+}
